@@ -1,3 +1,6 @@
+## ->> Visualização dos dados do csv auxilio_emergencial
+
+
 library(tidyverse)
 
 df <- read_csv2('./auxilio_emergencial.csv', col_names = c('ano_disponibilizacao', 'mes_disponibilizacao',
@@ -73,7 +76,7 @@ ggplot(data = df_valor_total) +
 
 ggplot(data = valor_total_agrupado) +  
   geom_line(aes(x = as.factor(mes_disponibilizacao), y = total_mes, colour = uf, group = uf)) +  
-  labs(x = "Mês", y = "Benef  ício", title = "Valor total Benefício por mês em cada Estado") +
+  labs(x = "Mês", y = "Benefício", title = "Valor total Benefício por mês em cada Estado") +
   scale_y_continuous(n.breaks = 6, labels = scales::number_format(big.mark = ".", decimal.mark =',')) +
   facet_wrap(vars(uf))
 
@@ -89,4 +92,51 @@ ggplot(data = beneficio_total_estado) +
   scale_y_continuous(n.breaks = 6, labels = scales::number_format(big.mark = ".", decimal.mark =',')) +
   scale_x_continuous(n.breaks = 6, labels = scales::number_format(big.mark = ".", decimal.mark =',')) 
 
+## ->> Gráficos e tabelas a partir das query's feitas anteriormente
+
+library(DBI)
+library(RPostgres)
+con <- dbConnect(RPostgres::Postgres(),dbname = 'auxilio_emergencial',   options="-c search_path=auxilio",
+                 host = 'localhost', 
+                 port = 5432, 
+                 user = 'postgres',
+                 password = 'postgres123')
+
+cidades_sp <- as_tibble(dbGetQuery(con, "SELECT nome_municipio FROM auxilio.municipio where uf = 'SP'"))
+
+receberam_parcela_ou_extra <- as_tibble(dbGetQuery(con, "SELECT * FROM auxilio.parcela as parcela
+FULL OUTER JOIN auxilio.parcela_extra as parcela_extra on (parcela_extra.UF = parcela.uf) LIMIT 100"))
+
+sp_rj <- as_tibble(dbGetQuery(con, "SELECT * FROM auxilio.parcela WHERE uf = 'SP'
+UNION
+SELECT * FROM auxilio.parcela WHERE uf = 'RJ'"))
+
+sp_valor1_maior_dez_mil <- as_tibble(dbGetQuery(con, "SELECT nome_municipio FROM auxilio.municipio where uf = 'SP'
+EXCEPT
+SELECT nome_municipio FROM auxilio.parcela WHERE parcela_1_valor_beneficio < 10000"))
+
+parcela_1_valor_beneficio_mg_rs <- as_tibble(dbGetQuery(con, "SELECT  
+	uf,
+	SUM(parcela.parcela_1_valor_beneficio) AS parcela_1_valor_beneficio
+FROM auxilio.parcela
+WHERE uf = 'MG' or uf = 'RS'
+GROUP BY uf"))
+
+
+View(cidades_sp)
+
+View(receberam_parcela_ou_extra)
+
+ggplot(data = sp_rj) +
+  geom_line(aes(x = as.factor(mes_disponibilizacao), y = parcela_1_valor_beneficio,  colour = uf, group = uf), size = 2) +
+  labs(x = "Mês", y = "Valor bnefício da parcela 1", title = "Valor por mês do benefício da primeira parcela")+
+  scale_y_continuous(n.breaks = 6, labels = scales::number_format(big.mark = ".", decimal.mark =',')) +
+  facet_wrap(vars(uf))
+
+Viw(sp_valor1_maior_dez_mil)
+
+ggplot(data = parcela_1_valor_beneficio_mg_rs) +
+  geom_col(aes(x = uf, y = parcela_1_valor_beneficio, fill = uf)) +
+  labs(x = "Estado", y = "Valor bnefício da parcela 1", title = "Valor do benefício da primeira parcela nos Estados MG e RS")+
+  scale_y_continuous(n.breaks = 6, labels = scales::number_format(big.mark = ".", decimal.mark =','))
 
