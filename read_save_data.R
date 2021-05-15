@@ -6,7 +6,7 @@ library(tidyverse)
 library(DBI)
 library(RPostgres)
 
-df <- read_csv2('C:\\Users\\bfaam\\Downloads\\auxilio_emergencial.csv', col_names = c('ano_disponibilizacao', 'mes_disponibilizacao',
+df <- read_csv2('./auxilio_emergencial.csv', col_names = c('ano_disponibilizacao', 'mes_disponibilizacao',
                                                            'uf', 'nome_municipio',
                                                            'parcela_1', 'parcela_2',
                                                            'parcela_3', 'parcela_4',
@@ -52,11 +52,11 @@ names(municipio) <- tolower(names(municipio))
 names(parcela_extra) <- tolower(names(parcela_extra))
 names(parcela) <- tolower(names(parcela))
 
-con <- dbConnect(RPostgres::Postgres(),dbname = 'postgres',   options="-c search_path=auxilio",
+con <- dbConnect(RPostgres::Postgres(),dbname = 'auxilio_emergencial',   options="-c search_path=auxilio",
                  host = 'localhost', 
                  port = 5432, 
                  user = 'postgres',
-                 password = 'admin')
+                 password = 'postgres123')
 
 
 dbAppendTable(con, "municipio", municipio)
