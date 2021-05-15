@@ -133,7 +133,7 @@ ggplot(data = sp_rj) +
   scale_y_continuous(n.breaks = 6, labels = scales::number_format(big.mark = ".", decimal.mark =',')) +
   facet_wrap(vars(uf))
 
-Viw(sp_valor1_maior_dez_mil)
+View(sp_valor1_maior_dez_mil)
 
 ggplot(data = parcela_1_valor_beneficio_mg_rs) +
   geom_col(aes(x = uf, y = parcela_1_valor_beneficio, fill = uf)) +
