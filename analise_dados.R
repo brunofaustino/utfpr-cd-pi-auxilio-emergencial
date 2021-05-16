@@ -115,6 +115,13 @@ sp_valor1_maior_dez_mil <- as_tibble(dbGetQuery(con, "SELECT nome_municipio FROM
 EXCEPT
 SELECT nome_municipio FROM auxilio.parcela WHERE parcela_1_valor_beneficio < 10000"))
 
+sp_except <- as_tibble(dbGetQuery(con, "SELECT nome_municipio FROM auxilio.municipio
+WHERE NOT EXISTS (
+	SELECT nome_municipio FROM auxilio.municipio where uf = 'SP'
+	EXCEPT
+	SELECT nome_municipio FROM auxilio.parcela WHERE parcela_1_valor_beneficio < 10000
+)"))
+
 parcela_1_valor_beneficio_mg_rs <- as_tibble(dbGetQuery(con, "SELECT  
 	uf,
 	SUM(parcela.parcela_1_valor_beneficio) AS parcela_1_valor_beneficio
@@ -134,6 +141,8 @@ ggplot(data = sp_rj) +
   facet_wrap(vars(uf))
 
 View(sp_valor1_maior_dez_mil)
+
+View(sp_except)
 
 ggplot(data = parcela_1_valor_beneficio_mg_rs) +
   geom_col(aes(x = uf, y = parcela_1_valor_beneficio, fill = uf)) +
